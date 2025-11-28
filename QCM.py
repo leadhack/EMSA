@@ -127,7 +127,9 @@ if pwd:
         st.stop()
     else:
         st.success("Accès admin accordé ✔")
-
+else:
+    # Si rien n’est saisi, ne pas afficher de message d’erreur
+    st.info("Veuillez saisir le mot de passe.")
     # Charger toutes les données Google Sheets
     data = sheet.get_all_records()
 
@@ -146,6 +148,7 @@ if pwd:
         "export_complet.csv",
         mime="text/csv"
     )
+
 
 
 
