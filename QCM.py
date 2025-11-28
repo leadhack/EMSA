@@ -122,7 +122,7 @@ if menu == "Admin":
     
     pwd = st.text_input("Mot de passe admin :", type="password")
     
-if pwd:
+    if pwd:
         if pwd != ADMIN_PASSWORD:
             st.warning("Mot de passe incorrect.")
             st.stop()
@@ -146,9 +146,10 @@ if pwd:
                 "export_complet.csv",
                 mime="text/csv"
             )
-else:
+    else:
         # Si rien n’est saisi, ne rien faire ou afficher une invite
         st.info("Veuillez saisir le mot de passe.")
+
 
 
 
