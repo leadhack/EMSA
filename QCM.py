@@ -116,10 +116,8 @@ if menu == "Passer le QCM":
 if menu == "Admin":
 
     st.title("🔐 Tableau de bord Admin")
-
-    # Mot de passe admin (mettre dans secrets)
-    #ADMIN_PASSWORD = st.secrets.get("admin_password", "")
     ADMIN_PASSWORD = "mehdi2017"
+    pwd="rien"
     pwd = st.text_input("Mot de passe admin :", type="password")
 if pwd:
         if pwd != ADMIN_PASSWORD:
@@ -148,6 +146,7 @@ if pwd:
 else:
         # Si rien n’est saisi, ne rien faire ou afficher une invite
         st.info("Veuillez saisir le mot de passe.")
+
 
 
 
