@@ -1,195 +1,139 @@
 import streamlit as st
-import pandas as pd
-from pathlib import Path
+import gspread
 from datetime import datetime
-import csv
+import pandas as pd
+from google.oauth2.service_account import Credentials
 
-# ----------------------------------------------------
-# FICHIER COMPLET STREAMLIT — QCM IF / ELSE
-# - Saisie nom / prénom
-# - 10 questions
-# - Sauvegarde CSV
-# - Espace Admin protégé
-# ----------------------------------------------------
+# -----------------------------
+# CONFIG GOOGLE SHEETS
+# -----------------------------
 
-CSV_FILE = Path("resultats_qcm.csv")
+SHEET_NAME = "QCM_Algo_Resultats"
 
-st.set_page_config(page_title="QCM Algorithmique — IF/ELSE", layout="centered")
-st.title("QCM Algorithmique — IF / ELSE")
-st.write("Complète ton nom, réponds aux questions, valide, et sauvegarde ton score.")
+# Connexion via secrets
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
 
-# ----------------------------
-# Liste des questions
-# ----------------------------
+client = gspread.authorize(creds)
+sheet = client.open(SHEET_NAME).sheet1
+
+# -----------------------------
+# QUESTIONS DU QCM
+# -----------------------------
 QUESTIONS = [
     {
-        "q": "1) Que fait une structure IF ?",
-        "opts": ["Répète une instruction", "Effectue un choix selon une condition", "Tri des éléments", "Arrête l'algorithme"],
-        "a": 1,
+        "q": "Que fait ce code ?\nIF age >= 18 THEN afficher 'majeur' ELSE afficher 'mineur'",
+        "opts": ["Teste si l’âge est supérieur à 18", "Teste si l’âge est inférieur à 18", "Teste si l’âge est égal à 18"],
+        "a": 0
     },
     {
-        "q": "2) Syntaxe correcte pour vérifier si n est pair (pseudo-code) :",
-        "opts": ["SI n / 2 = 0 ALORS", "SI n % 2 = 0 ALORS", "SI n = 2 ALORS", "SI n = 0 ALORS"],
-        "a": 1,
+        "q": "Dans un IF/ELSE, que signifie ELSE ?",
+        "opts": ["Sinon", "Et si", "Toujours"],
+        "a": 0
     },
     {
-        "q": "3) Quelle condition est vraie ?",
-        "opts": ["5 < 3", "10 == 5", "7 > 2", "4 != 4"],
-        "a": 2,
-    },
-    {
-        "q": "4) Que fait ELSE ?",
-        "opts": ["Teste une autre condition", "S'exécute si IF est faux", "Lance une boucle", "Compare deux valeurs"],
-        "a": 1,
-    },
-    {
-        "q": "5) Expression équivalente à 'x n'est pas entre 5 et 10 inclus' :",
-        "opts": ["x < 5 OU x > 10", "x <= 5 ET x >= 10", "x > 5 ET x < 10", "x = 5 OU x = 10"],
-        "a": 0,
-    },
-    {
-        "q": "6) Que signifie 'NON (a > b)' ?",
-        "opts": ["a > b", "a <= b", "a < b", "a >= b"],
-        "a": 1,
-    },
-    {
-        "q": "7) Pour a=3, b=4, que donne : SI a+b > 10 ALORS ... SINON SI a*b > 10 ALORS 'B' SINON 'C' ?",
-        "opts": ["A", "B", "C", "Erreur"],
-        "a": 2,
-    },
-    {
-        "q": "8) Condition correcte pour afficher OK si x est pair ET strictement > 0 :",
-        "opts": ["x % 2 = 0 ET x > 0", "x % 2 = 0 OU x > 0", "x > 0", "x % 2 != 0 ET x > 0"],
-        "a": 0,
-    },
-    {
-        "q": "9) Résultat si y=0 ? SI y=0 ALORS SI y<1 ALORS 'A' SINON 'B' FIN SINON 'C' FIN",
-        "opts": ["A", "B", "C", "Rien"],
-        "a": 0,
-    },
-    {
-        "q": "10) Quelle expression est fausse ?",
-        "opts": ["5 < 6 OU 3 > 1", "(10 > 5) ET (8 < 2)", "NON (4 < 3)", "7 != 7 OU 2 < 3"],
-        "a": 1,
-    },
+        "q": "Que donnera : IF x = 5 THEN y = 10 ELSE y = 0 (avec x = 3)",
+        "opts": ["y = 10", "y = 0", "Erreur"],
+        "a": 1
+    }
 ]
 
-# ----------------------------------------------------
-# Navigation
-# ----------------------------------------------------
-page = st.sidebar.radio("Navigation", ["Passer le QCM", "Admin"])
+# -----------------------------
+# PAGE
+# -----------------------------
+st.set_page_config(page_title="QCM Algo", page_icon="🧠")
 
-# ----------------------------------------------------
-# PAGE : PASSER LE QCM
-# ----------------------------------------------------
-if page == "Passer le QCM":
+menu = st.sidebar.radio("Navigation", ["Passer le QCM", "Admin"])
 
-    st.subheader("Tes informations")
+# =============================
+# PAGE QCM ÉTUDIANT
+# =============================
+if menu == "Passer le QCM":
 
-    with st.form(key="qcm_form"):
+    st.title("🧠 QCM Algorithme — IF / ELSE")
+
+    with st.form("qcm_form"):
         nom = st.text_input("Nom")
         prenom = st.text_input("Prénom")
 
-        st.write("---")
-        st.subheader("Questions")
-
         answers = []
+        st.write("### Questions :")
         for i, item in enumerate(QUESTIONS):
-            ans = st.radio(item['q'], item['opts'], key=f"q{i}")
-            answers.append(item['opts'].index(ans))
+            rep = st.radio(item["q"], item["opts"], key=f"q{i}")
+            answers.append(item["opts"].index(rep))
 
-        submit = st.form_submit_button("Valider")
+        submit = st.form_submit_button("Valider mes réponses")
 
-    # ---------------------------
-    # Traitement APRES le form
-    # ---------------------------
+    # Une fois validé
     if submit:
-        if not nom.strip() or not prenom.strip():
-            st.error("Veuillez saisir votre nom et prénom.")
-        else:
-            correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it['a'])
-            total = len(QUESTIONS)
-            percent = round(correct * 100 / total, 1)
+        if nom.strip() == "" or prenom.strip() == "":
+            st.error("Veuillez remplir votre nom et prénom.")
+            st.stop()
 
-            st.success(f"{prenom} {nom} — Score : {correct}/{total} ({percent}%)")
+        correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it["a"])
+        total = len(QUESTIONS)
+        percent = round(correct / total * 100, 1)
 
-            row = {
-                "prenom": prenom,
-                "nom": nom,
-                "score": correct,
-                "total": total,
-                "percent": percent,
-                "date": datetime.now().isoformat(timespec='seconds')
-            }
+        st.success(f"Résultat : {correct}/{total} — {percent}%")
 
-            # Sauvegarde CSV
-            write_header = not CSV_FILE.exists()
-            with CSV_FILE.open("a", newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=row.keys())
-                if write_header:
-                    writer.writeheader()
-                writer.writerow(row)
+        # Enregistrement dans Google Sheets
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            st.info("Résultat enregistré.")
+        row = [now, nom, prenom, correct, total, percent]
+        sheet.append_row(row)
 
-            # Téléchargement personnel
-            df_person = pd.DataFrame([row])
-            csv_person = df_person.to_csv(index=False).encode('utf-8')
+        st.info("Votre résultat a été enregistré dans le système centralisé ✔")
 
-            st.download_button(
-                "Télécharger mon résultat (CSV)",
-                csv_person,
-                file_name=f"resultat_{nom}_{prenom}.csv"
-            )
+        # Téléchargement résultat perso
+        df = pd.DataFrame([{
+            "date": now, "nom": nom, "prenom": prenom,
+            "score": correct, "total": total, "percent": percent
+        }])
 
-# ----------------------------------------------------
-# PAGE : ADMIN
-# ----------------------------------------------------
-elif page == "Admin":
-    st.subheader("Espace Admin")
-    st.write("⚠ Accès protégé — entrez le mot de passe")
+        csv = df.to_csv(index=False).encode("utf-8")
 
-    admin_password = st.text_input("Mot de passe", type="password")
+        st.download_button(
+            "⬇ Télécharger mon résultat",
+            csv,
+            file_name=f"resultat_{nom}_{prenom}.csv",
+            mime="text/csv"
+        )
 
-    # Lecture mot de passe dans secrets si défini
-    try:
-        secret_pw = st.secrets.get("ADMIN_PASSWORD", None)
-    except Exception:
-        secret_pw = None
+# =============================
+# PAGE ADMIN
+# =============================
+if menu == "Admin":
 
-    pw_ok = False
-    if secret_pw:
-        pw_ok = (admin_password == secret_pw)
-    else:
-        pw_ok = (admin_password == "admin")  # mode local
+    st.title("🔐 Tableau de bord Admin")
 
-    if pw_ok:
-        st.success("Accès accordé ✔")
+    # Mot de passe admin (mettre dans secrets)
+    ADMIN_PASSWORD = st.secrets.get("admin_password", "")
 
-        if CSV_FILE.exists():
-            df = pd.read_csv(CSV_FILE)
-            st.write(f"Nombre de résultats enregistrés : {len(df)}")
+    pwd = st.text_input("Mot de passe admin :", type="password")
 
-            st.dataframe(df)
+    if pwd != ADMIN_PASSWORD:
+        st.warning("Mot de passe incorrect.")
+        st.stop()
 
-            st.write("---")
-            st.subheader("Statistiques")
-            st.metric("Moyenne des scores (%)", round(df['percent'].mean(), 1))
-            st.metric("Score maximum", int(df['score'].max()))
+    st.success("Accès admin accordé ✔")
 
-            with CSV_FILE.open("rb") as f:
-                st.download_button("Télécharger tous les résultats (CSV)", f, file_name="resultats_qcm.csv")
-        else:
-            st.info("Aucun résultat pour le moment.")
+    # Charger toutes les données Google Sheets
+    data = sheet.get_all_records()
 
-    else:
-        if admin_password:
-            st.error("Mot de passe incorrect.")
-        else:
-            st.info("Veuillez entrer le mot de passe.")
+    if not data:
+        st.info("Aucun résultat pour le moment.")
+        st.stop()
 
-# ----------------------------------------------------
-# Footer
-# ----------------------------------------------------
-st.write("---")
-st.caption("Créé avec ❤️ — Partage via Streamlit Cloud pour obtenir un lien public.")
+    df = pd.DataFrame(data)
+
+    st.subheader("Résultats enregistrés :")
+    st.dataframe(df)
+
+    st.download_button(
+        "⬇ Télécharger tous les résultats (CSV)",
+        df.to_csv(index=False).encode("utf-8"),
+        "export_complet.csv",
+        mime="text/csv"
+    )
