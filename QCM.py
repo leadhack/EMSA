@@ -145,9 +145,10 @@ if pwd:
                 "export_complet.csv",
                 mime="text/csv"
             )
-    else:
+else:
         # Si rien n’est saisi, ne rien faire ou afficher une invite
         st.info("Veuillez saisir le mot de passe.")
+
 
 
 
