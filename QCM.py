@@ -118,8 +118,8 @@ if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
     # Mot de passe admin (mettre dans secrets)
-    ADMIN_PASSWORD = st.secrets.get("admin_password", "")
-
+    #ADMIN_PASSWORD = st.secrets.get("admin_password", "")
+    ADMIN_PASSWORD = "mehdi2017"
     pwd = st.text_input("Mot de passe admin :", type="password")
 
     if pwd != ADMIN_PASSWORD:
@@ -146,6 +146,7 @@ if menu == "Admin":
         "export_complet.csv",
         mime="text/csv"
     )
+
 
 
 
