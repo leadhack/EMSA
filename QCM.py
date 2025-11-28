@@ -17,8 +17,10 @@ creds = Credentials.from_service_account_info(
 )
 
 client = gspread.authorize(creds)
-sheet = client.open(SHEET_NAME).sheet1
-
+try:
+    sheet = client.open(SHEET_NAME).sheet1
+except Exception as e:
+    st.error(f"Erreur lors de l'ouverture de la feuille : {e}")
 # -----------------------------
 # QUESTIONS DU QCM
 # -----------------------------
@@ -137,4 +139,5 @@ if menu == "Admin":
         "export_complet.csv",
         mime="text/csv"
     )
+
 
