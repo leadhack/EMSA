@@ -122,35 +122,32 @@ if menu == "Admin":
     ADMIN_PASSWORD = "mehdi2017"
     pwd = st.text_input("Mot de passe admin :", type="password")
 if pwd:
-    if pwd != ADMIN_PASSWORD:
-        st.warning("Mot de passe incorrect.")
-        st.stop()
+        if pwd != ADMIN_PASSWORD:
+            st.warning("Mot de passe incorrect.")
+            st.stop()
+        else:
+            st.success("Accès admin accordé ✔")
+            # Charger toutes les données Google Sheets
+            data = sheet.get_all_records()
+
+            if not data:
+                st.info("Aucun résultat pour le moment.")
+                st.stop()
+
+            df = pd.DataFrame(data)
+
+            st.subheader("Résultats enregistrés :")
+            st.dataframe(df)
+
+            st.download_button(
+                "⬇ Télécharger tous les résultats (CSV)",
+                df.to_csv(index=False).encode("utf-8"),
+                "export_complet.csv",
+                mime="text/csv"
+            )
     else:
-        st.success("Accès admin accordé ✔")
-#else:
-    # Si rien n’est saisi, ne pas afficher de message d’erreur
- #   st.info("Veuillez saisir le mot de passe.")
-    # Charger toutes les données Google Sheets
- #   data = sheet.get_all_records()
-
-    if not data:
-        st.info("Aucun résultat pour le moment.")
-        st.stop()
-
-    df = pd.DataFrame(data)
-
-    st.subheader("Résultats enregistrés :")
-    st.dataframe(df)
-
-    st.download_button(
-        "⬇ Télécharger tous les résultats (CSV)",
-        df.to_csv(index=False).encode("utf-8"),
-        "export_complet.csv",
-        mime="text/csv"
-    )
-
-
-
+        # Si rien n’est saisi, ne rien faire ou afficher une invite
+        st.info("Veuillez saisir le mot de passe.")
 
 
 
