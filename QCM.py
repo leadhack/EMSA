@@ -125,8 +125,8 @@ if pwd:
     if pwd != ADMIN_PASSWORD:
         st.warning("Mot de passe incorrect.")
         st.stop()
-
-    st.success("Accès admin accordé ✔")
+    else:
+        st.success("Accès admin accordé ✔")
 
     # Charger toutes les données Google Sheets
     data = sheet.get_all_records()
@@ -146,6 +146,7 @@ if pwd:
         "export_complet.csv",
         mime="text/csv"
     )
+
 
 
 
