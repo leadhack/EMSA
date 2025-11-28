@@ -13,8 +13,15 @@ SHEET_NAME = "QCM_Algo_Resultats"
 # Connexion via secrets
 creds = Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    scopes=[
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 )
+#creds = Credentials.from_service_account_info(
+ #   st.secrets["gcp_service_account"],
+    #scopes=["https://www.googleapis.com/auth/spreadsheets"]
+#)
 
 client = gspread.authorize(creds)
 try:
@@ -139,5 +146,6 @@ if menu == "Admin":
         "export_complet.csv",
         mime="text/csv"
     )
+
 
 
