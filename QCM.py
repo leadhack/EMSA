@@ -113,12 +113,14 @@ if menu == "Passer le QCM":
 # =============================
 # PAGE ADMIN
 # =============================
+pwd="rien"
 if menu == "Admin":
 
     st.title("🔐 Tableau de bord Admin")
     ADMIN_PASSWORD = "mehdi2017"
-    pwd="rien"
+    
     pwd = st.text_input("Mot de passe admin :", type="password")
+    
 if pwd:
         if pwd != ADMIN_PASSWORD:
             st.warning("Mot de passe incorrect.")
@@ -146,6 +148,7 @@ if pwd:
 else:
         # Si rien n’est saisi, ne rien faire ou afficher une invite
         st.info("Veuillez saisir le mot de passe.")
+
 
 
 
