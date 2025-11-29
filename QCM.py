@@ -117,6 +117,9 @@ if menu == "Passer le QCM":
 # =============================
 # PAGE ADMIN
 # =============================
+# =============================
+# PAGE ADMIN
+# =============================
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
@@ -124,23 +127,22 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
-    # Form pour le mot de passe
     if not st.session_state.admin_authenticated:
         with st.form("login_form"):
             pwd = st.text_input("Mot de passe admin :", type="password")
             submit = st.form_submit_button("Se connecter")
 
         if submit:
-            if pwd == "mehdi2017":  # ou st.secrets["admin_password"]
+            if pwd == st.secrets["admin_password"]:  # mot de passe depuis secrets
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
-                st.experimental_rerun()  # <- relance la page pour afficher le contenu admin
             else:
                 st.warning("Mot de passe incorrect.")
-    else:
-        # ----------------------------
-        # Tout le code admin doit être ici
-        # ----------------------------
+
+    # ----------------------------
+    # Tout le contenu admin
+    # ----------------------------
+    if st.session_state.admin_authenticated:
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
 
         if action == "Voir résultats":
