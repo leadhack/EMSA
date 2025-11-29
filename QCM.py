@@ -141,6 +141,7 @@ if menu == "Admin":
             if pwd == "mehdi2017": # mot de passe depuis secrets
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
+                st.experimental_rerun() 
             else:
                 st.warning("Mot de passe incorrect.")
 
@@ -204,6 +205,7 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
 
 
 
