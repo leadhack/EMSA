@@ -188,11 +188,12 @@ if menu == "Admin":
     elif not st.session_state.admin_authenticated:
         pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
         if st.button("Se connecter", key="pwd_btn"):
-            if pwd == st.secrets["admin_password"]:
+            if pwd == "EMSA2025"
                 st.session_state.admin_authenticated = True
                 st.experimental_rerun()  # relance la page pour afficher contenu admin
             else:
                 st.warning("Mot de passe incorrect.")
+
 
 
 
