@@ -126,7 +126,8 @@ if menu == "Admin":
 
     if not st.session_state.admin_authenticated:
         pwd = st.text_input("Mot de passe admin :", type="password")
-        ADMIN_PASSWORD = st.secrets["admin_password"]
+        #ADMIN_PASSWORD = st.secrets["admin_password"]
+        ADMIN_PASSWORD = "mehdi2017"
 
         if st.button("Se connecter"):
             if pwd == ADMIN_PASSWORD:
@@ -194,3 +195,4 @@ if menu == "Admin":
                             st.error(f"Erreur lors de l'ajout : {e}")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
