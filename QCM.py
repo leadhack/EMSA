@@ -60,60 +60,61 @@ menu = st.sidebar.radio("Navigation", ["Passer le QCM", "Admin"])
 # =============================
 # PAGE QCM ÉTUDIANT
 # =============================
+# =============================
+# PAGE QCM ÉTUDIANT
+# =============================
 if menu == "Passer le QCM":
     QUESTIONS = load_questions()
     st.title("🧠 QCM Algorithme — IF / ELSE")
 
-    if not QUESTIONS:
-        st.warning("Aucune question disponible pour le moment.")
-    else:
-        with st.form("qcm_form"):
-            nom = st.text_input("Nom")
-            prenom = st.text_input("Prénom")
-            answers = []
+    with st.form("qcm_form"):
+        nom = st.text_input("Nom")
+        prenom = st.text_input("Prénom")
+        answers = []
 
-            st.write("### Questions :")
-            for i, item in enumerate(QUESTIONS):
-                rep = st.radio(item["q"], item["opts"], key=f"q{i}")
-                try:
-                    answers.append(item["opts"].index(rep))
-                except ValueError:
-                    answers.append(-1)  # valeur par défaut si réponse non trouvée
+        st.write("### Questions :")
+        for i, item in enumerate(QUESTIONS):
+            # Affiche la question en format code pour conserver les retours à la ligne
+            st.markdown(f"**Q{i+1}:**\n```{item['q']}```")
+            rep = st.radio("", item["opts"], key=f"q{i}")
+            answers.append(item["opts"].index(rep))
 
-            submit = st.form_submit_button("Valider mes réponses")
+        submit = st.form_submit_button("Valider mes réponses")
 
-        if submit:
-            if not nom.strip() or not prenom.strip():
-                st.error("Veuillez remplir votre nom et prénom.")
-                st.stop()
+    if submit:
+        if nom.strip() == "" or prenom.strip() == "":
+            st.error("Veuillez remplir votre nom et prénom.")
+            st.stop()
 
-            correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it["a"])
-            total = len(QUESTIONS)
-            percent = round(correct / total * 100, 1)
+        # Calcul score
+        correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it["a"])
+        total = len(QUESTIONS)
+        percent = round(correct / total * 100, 1)
 
-            st.success(f"Résultat : {correct}/{total} — {percent}%")
+        st.success(f"Résultat : {correct}/{total} — {percent}%")
 
-            # Enregistrement dans Google Sheets résultats
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            row = [now, nom, prenom, correct, total, percent]
-            try:
-                sheet_results.append_row(row)
-                st.info("Votre résultat a été enregistré dans le système centralisé ✔")
-            except Exception as e:
-                st.error(f"Erreur lors de l'enregistrement : {e}")
+        # Enregistrement dans Google Sheets
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [now, nom, prenom, correct, total, percent]
+        try:
+            sheet_results.append_row(row)
+            st.info("Votre résultat a été enregistré dans le système centralisé ✔")
+        except Exception as e:
+            st.error(f"Erreur lors de l'enregistrement : {e}")
 
-            # Téléchargement résultat perso
-            df = pd.DataFrame([{
-                "date": now, "nom": nom, "prenom": prenom,
-                "score": correct, "total": total, "percent": percent
-            }])
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "⬇ Télécharger mon résultat",
-                csv,
-                file_name=f"resultat_{nom}_{prenom}.csv",
-                mime="text/csv"
-            )
+        # Téléchargement résultat perso
+        df = pd.DataFrame([{
+            "date": now, "nom": nom, "prenom": prenom,
+            "score": correct, "total": total, "percent": percent
+        }])
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "⬇ Télécharger mon résultat",
+            csv,
+            file_name=f"resultat_{nom}_{prenom}.csv",
+            mime="text/csv"
+        )
+
 
 # =============================
 # PAGE ADMIN
@@ -196,6 +197,7 @@ if menu == "Admin":
     else:
         st.text_input("Mot de passe admin :", type="password", key="pwd_input")
         st.button("Se connecter", on_click=attempt_login)
+
 
 
 
