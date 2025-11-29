@@ -126,27 +126,20 @@ if menu == "Admin":
 
     if not st.session_state.admin_authenticated:
         pwd = st.text_input("Mot de passe admin :", type="password")
-        #ADMIN_PASSWORD = st.secrets["admin_password"]
-        ADMIN_PASSWORD = "mehdi2017"
-
         if st.button("Se connecter"):
-            if pwd == ADMIN_PASSWORD:
+            if pwd == st.secrets["admin_password"]:
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
             else:
                 st.warning("Mot de passe incorrect.")
     else:
-        # Actions admin
+        # ----------------------------
+        # Tout le code admin doit être ici
+        # ----------------------------
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
 
         if action == "Voir résultats":
-            # Afficher résultats
-            try:
-                data = sheet_results.get_all_records()
-            except Exception as e:
-                st.error(f"Erreur lors de la lecture des résultats : {e}")
-                data = []
-
+            data = sheet_results.get_all_records()
             if not data:
                 st.info("Aucun résultat pour le moment.")
             else:
@@ -161,11 +154,7 @@ if menu == "Admin":
                 )
 
         elif action == "Gérer questions":
-            if questions_sheet:
-                questions_data = questions_sheet.get_all_records()
-            else:
-                questions_data = []
-
+            questions_data = questions_sheet.get_all_records() if questions_sheet else []
             sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"])
 
             if sub_action == "Rechercher une question":
@@ -188,11 +177,7 @@ if menu == "Admin":
                 if st.button("Ajouter cette question"):
                     if all([q_text.strip(), opt1.strip(), opt2.strip(), opt3.strip(), opt4.strip()]):
                         new_row = [q_text, opt1, opt2, opt3, opt4, str(correct_opt)]
-                        try:
-                            questions_sheet.append_row(new_row)
-                            st.success("Question ajoutée avec succès.")
-                        except Exception as e:
-                            st.error(f"Erreur lors de l'ajout : {e}")
+                        questions_sheet.append_row(new_row)
+                        st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
-
