@@ -124,13 +124,17 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
+    # Form pour le mot de passe
     if not st.session_state.admin_authenticated:
-        pwd = st.text_input("Mot de passe admin :", type="password")
-        if st.button("Se connecter"):
-            #if pwd == st.secrets["admin_password"]:
-            if pwd == "mehdi2017":
+        with st.form("login_form"):
+            pwd = st.text_input("Mot de passe admin :", type="password")
+            submit = st.form_submit_button("Se connecter")
+
+        if submit:
+            if pwd == "mehdi2017":  # ou st.secrets["admin_password"]
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
+                st.experimental_rerun()  # <- relance la page pour afficher le contenu admin
             else:
                 st.warning("Mot de passe incorrect.")
     else:
@@ -182,4 +186,3 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
-
