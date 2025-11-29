@@ -126,7 +126,7 @@ if menu == "Admin":
 
     def attempt_login():
         # Vérifie le mot de passe saisi avant d'autoriser
-        if st.session_state.pwd_input == "EMSA_2025:
+        if st.session_state.pwd_input == "EMSA_2025":
             st.session_state.admin_authenticated = True
             st.success("Accès admin accordé ✔")
         else:
@@ -196,6 +196,7 @@ if menu == "Admin":
     else:
         st.text_input("Mot de passe admin :", type="password", key="pwd_input")
         st.button("Se connecter", on_click=attempt_login)
+
 
 
 
