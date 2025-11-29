@@ -130,7 +130,7 @@ if menu == "Admin":
         connect_btn = st.button("Se connecter")
 
         if connect_btn:
-            if pwd == st.secrets["admin_password"]:
+            if pwd == "EMSA2025":
                 st.session_state.admin_authenticated = True
             else:
                 st.warning("Mot de passe incorrect.")
@@ -186,6 +186,7 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
 
 
 
