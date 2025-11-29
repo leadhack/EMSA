@@ -120,6 +120,10 @@ if menu == "Passer le QCM":
 # =============================
 # PAGE ADMIN
 # =============================
+
+# =============================
+# PAGE ADMIN
+# =============================
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
@@ -127,25 +131,31 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
+    # Si l'admin n'est pas connecté
     if not st.session_state.admin_authenticated:
         with st.form("login_form"):
             pwd = st.text_input("Mot de passe admin :", type="password")
             submit = st.form_submit_button("Se connecter")
 
         if submit:
-            #if pwd == st.secrets["admin_password"]:  # mot de passe depuis secrets
-            if pwd == "mehdi1017": 
+            if pwd == st.secrets["admin_password"]:  # mot de passe depuis secrets
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
             else:
                 st.warning("Mot de passe incorrect.")
 
-    # ----------------------------
-    # Tout le contenu admin
-    # ----------------------------
+    # Si l'admin est connecté
     if st.session_state.admin_authenticated:
+
+        # Bouton pour se déconnecter
+        st.button("🔒 Se déconnecter", on_click=lambda: st.session_state.update({"admin_authenticated": False}))
+
+        # Choix de l'action
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
 
+        # ----------------------------
+        # Voir les résultats
+        # ----------------------------
         if action == "Voir résultats":
             data = sheet_results.get_all_records()
             if not data:
@@ -161,10 +171,14 @@ if menu == "Admin":
                     mime="text/csv"
                 )
 
+        # ----------------------------
+        # Gérer les questions
+        # ----------------------------
         elif action == "Gérer questions":
             questions_data = questions_sheet.get_all_records() if questions_sheet else []
             sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"])
 
+            # Rechercher une question
             if sub_action == "Rechercher une question":
                 recherche = st.text_input("Mot-clé ou question")
                 if recherche:
@@ -174,6 +188,7 @@ if menu == "Admin":
                         st.write(f"Options : {q['option1']}, {q['option2']}, {q['option3']}, {q['option4']}")
                         st.write(f"Réponse correcte : option {q['correct_option']}")
 
+            # Ajouter une question
             elif sub_action == "Ajouter une question":
                 q_text = st.text_area("Question")
                 opt1 = st.text_input("Option 1")
@@ -189,4 +204,6 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
+
 
