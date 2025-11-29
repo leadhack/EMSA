@@ -124,8 +124,14 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
-    def connect_admin():
-        st.session_state.admin_authenticated = True
+    def attempt_login():
+        # Vérifie le mot de passe saisi avant d'autoriser
+        if st.session_state.pwd_input == "EMSA_2025:
+            st.session_state.admin_authenticated = True
+            st.success("Accès admin accordé ✔")
+        else:
+            st.warning("Mot de passe incorrect.")
+            st.session_state.admin_authenticated = False
 
     def disconnect_admin():
         st.session_state.admin_authenticated = False
@@ -137,9 +143,7 @@ if menu == "Admin":
         # Bouton déconnexion
         st.button("🔒 Se déconnecter", on_click=disconnect_admin)
 
-        st.success("Accès admin accordé ✔")
-
-        # Actions Admin
+        # Contenu admin
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"], key="admin_action")
 
         if action == "Voir résultats":
@@ -190,5 +194,10 @@ if menu == "Admin":
     # Si admin non connecté
     # -----------------------------
     else:
-        pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
-        st.button("Se connecter", on_click=connect_admin)
+        st.text_input("Mot de passe admin :", type="password", key="pwd_input")
+        st.button("Se connecter", on_click=attempt_login)
+
+
+
+
+
