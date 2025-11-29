@@ -1,4 +1,4 @@
-#https://docs.google.com/spreadsheets/d/1PnVhcuq-bC9QOowTO8evBCFFMuqWC9MGsPzwHfQvgWI/edit?gid=0#gid=0
+# https://docs.google.com/spreadsheets/d/1PnVhcuq-bC9QOowTO8evBCFFMuqWC9MGsPzwHfQvgWI/edit?gid=0#gid=0
 import streamlit as st
 import gspread
 from datetime import datetime
@@ -18,7 +18,6 @@ creds = Credentials.from_service_account_info(
         "https://www.googleapis.com/auth/drive"
     ]
 )
-
 client = gspread.authorize(creds)
 
 # Feuille résultats
@@ -34,16 +33,21 @@ except Exception as e:
     questions_sheet = None
     st.error(f"Erreur lors de l'ouverture de la feuille questions : {e}")
 
-# Fonction pour charger questions
+# -----------------------------
+# FONCTION POUR CHARGER QUESTIONS
+# -----------------------------
 def load_questions():
     questions = []
     if questions_sheet:
         questions_data = questions_sheet.get_all_records()
         for row in questions_data:
-            q = row['question']
-            opts = [row['option1'], row['option2'], row['option3'], row['option4']]
-            correct_idx = int(row['correct_option'])
-            questions.append({"q": q, "opts": opts, "a": correct_idx})
+            try:
+                q = row['question']
+                opts = [row['option1'], row['option2'], row['option3'], row['option4']]
+                correct_idx = int(row['correct_option'])
+                questions.append({"q": q, "opts": opts, "a": correct_idx})
+            except Exception:
+                continue
     return questions
 
 # -----------------------------
@@ -59,113 +63,134 @@ if menu == "Passer le QCM":
     QUESTIONS = load_questions()
     st.title("🧠 QCM Algorithme — IF / ELSE")
 
-    with st.form("qcm_form"):
-        nom = st.text_input("Nom")
-        prenom = st.text_input("Prénom")
-        answers = []
+    if not QUESTIONS:
+        st.warning("Aucune question disponible pour le moment.")
+    else:
+        with st.form("qcm_form"):
+            nom = st.text_input("Nom")
+            prenom = st.text_input("Prénom")
+            answers = []
 
-        st.write("### Questions :")
-        for i, item in enumerate(QUESTIONS):
-            rep = st.radio(item["q"], item["opts"], key=f"q{i}")
-            answers.append(item["opts"].index(rep))
+            st.write("### Questions :")
+            for i, item in enumerate(QUESTIONS):
+                rep = st.radio(item["q"], item["opts"], key=f"q{i}")
+                try:
+                    answers.append(item["opts"].index(rep))
+                except ValueError:
+                    answers.append(-1)  # valeur par défaut si réponse non trouvée
 
-        submit = st.form_submit_button("Valider mes réponses")
+            submit = st.form_submit_button("Valider mes réponses")
 
-    if submit:
-        if nom.strip() == "" or prenom.strip() == "":
-            st.error("Veuillez remplir votre nom et prénom.")
-            st.stop()
+        if submit:
+            if not nom.strip() or not prenom.strip():
+                st.error("Veuillez remplir votre nom et prénom.")
+                st.stop()
 
-        correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it["a"])
-        total = len(QUESTIONS)
-        percent = round(correct / total * 100, 1)
+            correct = sum(1 for i, it in enumerate(QUESTIONS) if answers[i] == it["a"])
+            total = len(QUESTIONS)
+            percent = round(correct / total * 100, 1)
 
-        st.success(f"Résultat : {correct}/{total} — {percent}%")
+            st.success(f"Résultat : {correct}/{total} — {percent}%")
 
-        # Enregistrement dans Google Sheets résultats
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [now, nom, prenom, correct, total, percent]
-        sheet_results.append_row(row)
+            # Enregistrement dans Google Sheets résultats
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            row = [now, nom, prenom, correct, total, percent]
+            try:
+                sheet_results.append_row(row)
+                st.info("Votre résultat a été enregistré dans le système centralisé ✔")
+            except Exception as e:
+                st.error(f"Erreur lors de l'enregistrement : {e}")
 
-        st.info("Votre résultat a été enregistré dans le système centralisé ✔")
-
-        # Téléchargement résultat perso
-        df = pd.DataFrame([{
-            "date": now, "nom": nom, "prenom": prenom,
-            "score": correct, "total": total, "percent": percent
-        }])
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            "⬇ Télécharger mon résultat",
-            csv,
-            file_name=f"resultat_{nom}_{prenom}.csv",
-            mime="text/csv"
-        )
+            # Téléchargement résultat perso
+            df = pd.DataFrame([{
+                "date": now, "nom": nom, "prenom": prenom,
+                "score": correct, "total": total, "percent": percent
+            }])
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇ Télécharger mon résultat",
+                csv,
+                file_name=f"resultat_{nom}_{prenom}.csv",
+                mime="text/csv"
+            )
 
 # =============================
 # PAGE ADMIN
 # =============================
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
-    pwd = st.text_input("Mot de passe admin :", type="password")
-    ADMIN_PASSWORD = "mehdi2017"
 
-    if pwd:
-        if pwd != ADMIN_PASSWORD:
-            st.warning("Mot de passe incorrect.")
-            st.stop()
-        else:
-            st.success("Accès admin accordé ✔")
-            # Actions admin
-            action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
+    # Initialiser la session pour mot de passe
+    if "admin_authenticated" not in st.session_state:
+        st.session_state.admin_authenticated = False
 
-            if action == "Voir résultats":
-                # Afficher résultats
+    if not st.session_state.admin_authenticated:
+        pwd = st.text_input("Mot de passe admin :", type="password")
+        ADMIN_PASSWORD = st.secrets["admin_password"]
+
+        if st.button("Se connecter"):
+            if pwd == ADMIN_PASSWORD:
+                st.session_state.admin_authenticated = True
+                st.success("Accès admin accordé ✔")
+            else:
+                st.warning("Mot de passe incorrect.")
+    else:
+        # Actions admin
+        action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
+
+        if action == "Voir résultats":
+            # Afficher résultats
+            try:
                 data = sheet_results.get_all_records()
-                if not data:
-                    st.info("Aucun résultat pour le moment.")
-                else:
-                    df = pd.DataFrame(data)
-                    st.subheader("Résultats enregistrés :")
-                    st.dataframe(df)
-                    st.download_button(
-                        "⬇ Télécharger tous les résultats (CSV)",
-                        df.to_csv(index=False).encode("utf-8"),
-                        "export_complet.csv",
-                        mime="text/csv"
-                    )
+            except Exception as e:
+                st.error(f"Erreur lors de la lecture des résultats : {e}")
+                data = []
 
-            elif action == "Gérer questions":
-                # Charger questions
-                if questions_sheet:
-                    questions_data = questions_sheet.get_all_records()
-                else:
-                    questions_data = []
+            if not data:
+                st.info("Aucun résultat pour le moment.")
+            else:
+                df = pd.DataFrame(data)
+                st.subheader("Résultats enregistrés :")
+                st.dataframe(df)
+                st.download_button(
+                    "⬇ Télécharger tous les résultats (CSV)",
+                    df.to_csv(index=False).encode("utf-8"),
+                    "export_complet.csv",
+                    mime="text/csv"
+                )
 
-                sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"])
+        elif action == "Gérer questions":
+            if questions_sheet:
+                questions_data = questions_sheet.get_all_records()
+            else:
+                questions_data = []
 
-                if sub_action == "Rechercher une question":
-                    recherche = st.text_input("Mot-clé ou question")
-                    if recherche:
-                        filtered = [q for q in questions_data if recherche.lower() in q['question'].lower()]
-                        for q in filtered:
-                            st.write(f"**Q :** {q['question']}")
-                            st.write(f"Options : {q['option1']}, {q['option2']}, {q['option3']}, {q['option4']}")
-                            st.write(f"Réponse correcte : option {q['correct_option']}")
+            sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"])
 
-                elif sub_action == "Ajouter une question":
-                    q_text = st.text_area("Question")
-                    opt1 = st.text_input("Option 1")
-                    opt2 = st.text_input("Option 2")
-                    opt3 = st.text_input("Option 3")
-                    opt4 = st.text_input("Option 4")
-                    correct_opt = st.selectbox("Réponse correcte (numéro 0-3)", [0, 1, 2, 3])
+            if sub_action == "Rechercher une question":
+                recherche = st.text_input("Mot-clé ou question")
+                if recherche:
+                    filtered = [q for q in questions_data if recherche.lower() in q['question'].lower()]
+                    for q in filtered:
+                        st.write(f"**Q :** {q['question']}")
+                        st.write(f"Options : {q['option1']}, {q['option2']}, {q['option3']}, {q['option4']}")
+                        st.write(f"Réponse correcte : option {q['correct_option']}")
 
-                    if st.button("Ajouter cette question"):
-                        if q_text and opt1 and opt2 and opt3 and opt4:
-                            new_row = [q_text, opt1, opt2, opt3, opt4, str(correct_opt)]
+            elif sub_action == "Ajouter une question":
+                q_text = st.text_area("Question")
+                opt1 = st.text_input("Option 1")
+                opt2 = st.text_input("Option 2")
+                opt3 = st.text_input("Option 3")
+                opt4 = st.text_input("Option 4")
+                correct_opt = st.selectbox("Réponse correcte (numéro 0-3)", [0, 1, 2, 3])
+
+                if st.button("Ajouter cette question"):
+                    if all([q_text.strip(), opt1.strip(), opt2.strip(), opt3.strip(), opt4.strip()]):
+                        new_row = [q_text, opt1, opt2, opt3, opt4, str(correct_opt)]
+                        try:
                             questions_sheet.append_row(new_row)
                             st.success("Question ajoutée avec succès.")
-                        else:
-                            st.error("Veuillez remplir tous les champs.")
-
+                        except Exception as e:
+                            st.error(f"Erreur lors de l'ajout : {e}")
+                    else:
+                        st.error("Veuillez remplir tous les champs.")
