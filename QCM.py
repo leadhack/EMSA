@@ -124,20 +124,19 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
-    # Si l'admin n'est pas connecté
+    # Si admin pas connecté, afficher champ + bouton
     if not st.session_state.admin_authenticated:
         pwd = st.text_input("Mot de passe admin :", type="password", key="admin_pwd")
-        connect_btn = st.button("Se connecter")
-
-        if connect_btn:
-            if pwd == "EMSA2025":
+        if st.button("Se connecter", key="admin_btn"):
+            if pwd == st.secrets["admin_password"]:
                 st.session_state.admin_authenticated = True
+                st.success("Accès admin accordé ✔")
             else:
                 st.warning("Mot de passe incorrect.")
 
-    # Si l'admin est connecté
+    # Si admin connecté, afficher le contenu et bouton déconnexion
     if st.session_state.admin_authenticated:
-        # Bouton pour se déconnecter
+        # Bouton déconnexion
         st.button("🔒 Se déconnecter", on_click=lambda: st.session_state.update({"admin_authenticated": False}))
 
         # Actions Admin
@@ -186,7 +185,6 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
-
 
 
 
