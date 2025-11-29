@@ -164,7 +164,7 @@ if menu == "Admin":
 
         elif action == "Gérer questions":
             questions_data = questions_sheet.get_all_records() if questions_sheet else []
-            sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"], key="sub_action")
+            sub_action = st.radio("Action :", ["Lister toutes les questions","Rechercher une question", "Ajouter une question"], key="sub_action")
 
             if sub_action == "Rechercher une question":
                 recherche = st.text_input("Mot-clé ou question", key="search_q")
@@ -197,6 +197,7 @@ if menu == "Admin":
     else:
         st.text_input("Mot de passe admin :", type="password", key="pwd_input")
         st.button("Se connecter", on_click=attempt_login)
+
 
 
 
