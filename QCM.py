@@ -133,7 +133,8 @@ if menu == "Admin":
             submit = st.form_submit_button("Se connecter")
 
         if submit:
-            if pwd == st.secrets["admin_password"]:  # mot de passe depuis secrets
+            #if pwd == st.secrets["admin_password"]:  # mot de passe depuis secrets
+            if pwd == "mehdi1017": 
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
             else:
@@ -188,3 +189,4 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
