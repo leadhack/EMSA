@@ -117,6 +117,7 @@ if menu == "Passer le QCM":
 # =============================
 # PAGE ADMIN
 # =============================
+
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
@@ -124,23 +125,31 @@ if menu == "Admin":
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
-    # Si admin pas connecté, afficher champ + bouton
+    # -----------------------------
+    # Si l'admin n'est pas connecté
+    # -----------------------------
     if not st.session_state.admin_authenticated:
-        pwd = st.text_input("Mot de passe admin :", type="password", key="admin_pwd")
-        if st.button("Se connecter", key="admin_btn"):
+        pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
+        connect = st.button("Se connecter", key="pwd_btn")
+
+        if connect:
             if pwd == "EMSA2025":
                 st.session_state.admin_authenticated = True
-                st.success("Accès admin accordé ✔")
             else:
                 st.warning("Mot de passe incorrect.")
 
-    # Si admin connecté, afficher le contenu et bouton déconnexion
+    # -----------------------------
+    # Si l'admin est connecté
+    # -----------------------------
     if st.session_state.admin_authenticated:
+        # Ne plus afficher le champ mot de passe
+        st.success("Accès admin accordé ✔")
+
         # Bouton déconnexion
         st.button("🔒 Se déconnecter", on_click=lambda: st.session_state.update({"admin_authenticated": False}))
 
-        # Actions Admin
-        action = st.radio("Action :", ["Voir résultats", "Gérer questions"])
+        # Actions admin
+        action = st.radio("Action :", ["Voir résultats", "Gérer questions"], key="admin_action")
 
         if action == "Voir résultats":
             data = sheet_results.get_all_records()
@@ -159,10 +168,10 @@ if menu == "Admin":
 
         elif action == "Gérer questions":
             questions_data = questions_sheet.get_all_records() if questions_sheet else []
-            sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"])
+            sub_action = st.radio("Action :", ["Rechercher une question", "Ajouter une question"], key="sub_action")
 
             if sub_action == "Rechercher une question":
-                recherche = st.text_input("Mot-clé ou question", key="recherche_q")
+                recherche = st.text_input("Mot-clé ou question", key="search_q")
                 if recherche:
                     filtered = [q for q in questions_data if recherche.lower() in q['question'].lower()]
                     for q in filtered:
@@ -171,22 +180,20 @@ if menu == "Admin":
                         st.write(f"Réponse correcte : option {q['correct_option']}")
 
             elif sub_action == "Ajouter une question":
-                q_text = st.text_area("Question")
-                opt1 = st.text_input("Option 1")
-                opt2 = st.text_input("Option 2")
-                opt3 = st.text_input("Option 3")
-                opt4 = st.text_input("Option 4")
-                correct_opt = st.selectbox("Réponse correcte (numéro 0-3)", [0, 1, 2, 3])
+                q_text = st.text_area("Question", key="new_q")
+                opt1 = st.text_input("Option 1", key="new_opt1")
+                opt2 = st.text_input("Option 2", key="new_opt2")
+                opt3 = st.text_input("Option 3", key="new_opt3")
+                opt4 = st.text_input("Option 4", key="new_opt4")
+                correct_opt = st.selectbox("Réponse correcte (numéro 0-3)", [0, 1, 2, 3], key="new_correct")
 
-                if st.button("Ajouter cette question"):
+                if st.button("Ajouter cette question", key="add_q"):
                     if all([q_text.strip(), opt1.strip(), opt2.strip(), opt3.strip(), opt4.strip()]):
                         new_row = [q_text, opt1, opt2, opt3, opt4, str(correct_opt)]
                         questions_sheet.append_row(new_row)
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
-
-
 
 
 
