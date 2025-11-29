@@ -127,7 +127,8 @@ if menu == "Admin":
     if not st.session_state.admin_authenticated:
         pwd = st.text_input("Mot de passe admin :", type="password")
         if st.button("Se connecter"):
-            if pwd == st.secrets["admin_password"]:
+            #if pwd == st.secrets["admin_password"]:
+            if pwd == "mehdi2017":
                 st.session_state.admin_authenticated = True
                 st.success("Accès admin accordé ✔")
             else:
@@ -181,3 +182,4 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
