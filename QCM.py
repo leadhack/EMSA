@@ -1,4 +1,5 @@
 # https://docs.google.com/spreadsheets/d/1PnVhcuq-bC9QOowTO8evBCFFMuqWC9MGsPzwHfQvgWI/edit?gid=0#gid=0
+#https://qcm-emsa-algorithme.streamlit.app/
 import streamlit as st
 import gspread
 from datetime import datetime
@@ -117,7 +118,6 @@ if menu == "Passer le QCM":
 # =============================
 # PAGE ADMIN
 # =============================
-
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
@@ -126,29 +126,16 @@ if menu == "Admin":
         st.session_state.admin_authenticated = False
 
     # -----------------------------
-    # Si l'admin n'est pas connecté
-    # -----------------------------
-    if not st.session_state.admin_authenticated:
-        pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
-        connect = st.button("Se connecter", key="pwd_btn")
-
-        if connect:
-            if pwd == "EMSA2025":
-                st.session_state.admin_authenticated = True
-            else:
-                st.warning("Mot de passe incorrect.")
-
-    # -----------------------------
     # Si l'admin est connecté
     # -----------------------------
     if st.session_state.admin_authenticated:
-        # Ne plus afficher le champ mot de passe
-        st.success("Accès admin accordé ✔")
-
         # Bouton déconnexion
-        st.button("🔒 Se déconnecter", on_click=lambda: st.session_state.update({"admin_authenticated": False}))
+        if st.button("🔒 Se déconnecter"):
+            st.session_state.admin_authenticated = False
+            st.experimental_rerun()  # relance la page pour cacher tout
 
-        # Actions admin
+        # Contenu admin
+        st.success("Accès admin accordé ✔")
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"], key="admin_action")
 
         if action == "Voir résultats":
@@ -194,6 +181,18 @@ if menu == "Admin":
                         st.success("Question ajoutée avec succès.")
                     else:
                         st.error("Veuillez remplir tous les champs.")
+
+    # -----------------------------
+    # Si l'admin n'est pas connecté
+    # -----------------------------
+    elif not st.session_state.admin_authenticated:
+        pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
+        if st.button("Se connecter", key="pwd_btn"):
+            if pwd == st.secrets["admin_password"]:
+                st.session_state.admin_authenticated = True
+                st.experimental_rerun()  # relance la page pour afficher contenu admin
+            else:
+                st.warning("Mot de passe incorrect.")
 
 
 
