@@ -121,21 +121,25 @@ if menu == "Passer le QCM":
 if menu == "Admin":
     st.title("🔐 Tableau de bord Admin")
 
-    # Initialiser la session
     if "admin_authenticated" not in st.session_state:
         st.session_state.admin_authenticated = False
 
+    def connect_admin():
+        st.session_state.admin_authenticated = True
+
+    def disconnect_admin():
+        st.session_state.admin_authenticated = False
+
     # -----------------------------
-    # Si l'admin est connecté
+    # Si admin connecté
     # -----------------------------
     if st.session_state.admin_authenticated:
         # Bouton déconnexion
-        if st.button("🔒 Se déconnecter"):
-            st.session_state.admin_authenticated = False
-            st.experimental_rerun()  # relance la page pour cacher tout
+        st.button("🔒 Se déconnecter", on_click=disconnect_admin)
 
-        # Contenu admin
         st.success("Accès admin accordé ✔")
+
+        # Actions Admin
         action = st.radio("Action :", ["Voir résultats", "Gérer questions"], key="admin_action")
 
         if action == "Voir résultats":
@@ -183,18 +187,8 @@ if menu == "Admin":
                         st.error("Veuillez remplir tous les champs.")
 
     # -----------------------------
-    # Si l'admin n'est pas connecté
+    # Si admin non connecté
     # -----------------------------
-    elif not st.session_state.admin_authenticated:
+    else:
         pwd = st.text_input("Mot de passe admin :", type="password", key="pwd_input")
-        if st.button("Se connecter", key="pwd_btn"):
-            if pwd == "EMSA2025":
-                st.session_state.admin_authenticated = True
-                st.experimental_rerun()  # relance la page pour afficher contenu admin
-            else:
-                st.warning("Mot de passe incorrect.")
-
-
-
-
-
+        st.button("Se connecter", on_click=connect_admin)
